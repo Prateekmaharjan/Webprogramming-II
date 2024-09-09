@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit User</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #8A2C2C;
+            padding: 15px;
+            color: white;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar a {
+            color: white;
+            margin-right: 15px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button {
+            background-color: #8A2C2C;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #D35454;
+        }
+
+        .back-link {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .back-link a {
+            color: #8A2C2C;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div>Gym Management System</div>
+        <div>
+            <a href="/register">Register</a>
+            <a href="/login">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Edit User</h2>
+        <form action="/update" method="post">
+            <div>
+                <label for="newName">New Username:</label>
+                <input type="text" id="newName" name="newName" th:value="${user.name}" />
+            </div>
+            <div>
+                <label for="newEmail">New Email:</label>
+                <input type="email" id="newEmail" name="newEmail" th:value="${user.email}" />
+            </div>
+            <input type="hidden" name="oldEmail" th:value="${user.email}" />
+            <div>
+                <button type="submit">Update</button>
+            </div>
+        </form>
+
+        <div class="back-link">
+            <a href="/users">Back to User List</a>
+        </div>
+    </div>
+</body>
+</html>
