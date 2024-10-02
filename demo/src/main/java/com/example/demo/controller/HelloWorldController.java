@@ -7,10 +7,14 @@ import com.example.demo.service.UserService;
 import com.example.demo.service.RoleService;
 import com.example.demo.service.MembershipService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -22,7 +26,7 @@ public class HelloWorldController {
     private UserService userService;
 
     @Autowired
-private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private RoleService roleService;
@@ -30,17 +34,25 @@ private PasswordEncoder passwordEncoder;
     @Autowired
     private MembershipService membershipService;
 
+    @Autowired
+    private AuthenticationManager authenticationManager; // Autowired AuthenticationManager
+
     // Method to show the login page
     @GetMapping("/login")
     public String login() {
         return "login";
     }
 
+    @GetMapping("/home")
+    public String home() {
+        return "home"; // This should match your home.html file in the templates folder
+    }
+
     // Method to show the register page
     @GetMapping("/register")
     public String register(Model model) {
-        List<Role> roles = roleService.getAllRoles(); // Fetch all roles for dropdown
-        List<Membership> memberships = membershipService.getAllMemberships(); // Fetch all memberships
+        List<Role> roles = roleService.getAllRoles();
+        List<Membership> memberships = membershipService.getAllMemberships();
 
         model.addAttribute("roles", roles);
         model.addAttribute("memberships", memberships);
@@ -48,6 +60,26 @@ private PasswordEncoder passwordEncoder;
         return "register";
     }
 
+    // Method to handle login form submission
+    
+    // Verification method
+    public boolean verifyPassword(String password, String encryptedPassword) {
+        return passwordEncoder.matches(password, encryptedPassword);
+    }
+    
+@PostMapping("/login")
+public String processLogin(@RequestParam("email") String email, @RequestParam("password") String password, Model model) {
+    try {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(email, password)
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return "redirect:/home"; // Redirect to home page upon successful login
+    } catch (Exception e) {
+        model.addAttribute("errorMessage", "Invalid credentials!");
+        return "login"; // Show login page with error message
+    }
+}
     // Method to handle the registration form submission
     @PostMapping("/register")
     public String processRegistration(
@@ -70,13 +102,13 @@ private PasswordEncoder passwordEncoder;
             model.addAttribute("errorMessage", "Email already exists!");
             return "register"; 
         }
-    
+   
         // Create a new user and save to the database with encrypted password
-        User newUser = new User(name, email, password); // Use the raw password here
-    
+        String encryptedPassword = passwordEncoder.encode(password);
+        User newUser = new User(name, email, encryptedPassword);
         try {
             System.out.println("Saving user: " + email);
-            userService.saveUser(newUser); // This method should encrypt the password
+            userService.saveUser(newUser);
             System.out.println("User saved successfully: " + email);
         } catch (Exception e) {
             System.out.println("Error saving user: " + e.getMessage());
@@ -86,21 +118,20 @@ private PasswordEncoder passwordEncoder;
     
         return "redirect:/login";
     }
-    
 
     // Method to show the list of registered users
     @GetMapping("/users")
     public String showUsers(Model model) {
-        List<User> users = userService.getAllUsers(); // Fetch all users from the database
-        model.addAttribute("users", users); // Add the list of users to the model
-        return "user-list"; // Return the user-list.html view
+        List<User> users = userService.getAllUsers();
+        model.addAttribute("users", users);
+        return "user-list"; 
     }
 
     // Method to handle deleting a user
     @PostMapping("/delete")
     public String deleteUser(@RequestParam("email") String email) {
         userService.deleteUserByEmail(email);
-        return "redirect:/users"; // After deletion, redirect back to the users list
+        return "redirect:/users"; 
     }
 
     // Method to show the user-edit page for updating details
@@ -109,16 +140,16 @@ private PasswordEncoder passwordEncoder;
         User userToEdit = userService.findByEmail(email);
 
         if (userToEdit != null) {
-            List<Role> roles = roleService.getAllRoles(); // Fetch roles for dropdown
-            List<Membership> memberships = membershipService.getAllMemberships(); // Fetch memberships
+            List<Role> roles = roleService.getAllRoles();
+            List<Membership> memberships = membershipService.getAllMemberships();
 
             model.addAttribute("roles", roles);
             model.addAttribute("memberships", memberships);
-            model.addAttribute("user", userToEdit); // Add the user to the model
-            return "user-edit"; // Return the user-edit.html view
+            model.addAttribute("user", userToEdit);
+            return "user-edit"; 
         } else {
             model.addAttribute("errorMessage", "User not found!");
-            return "redirect:/users"; // Redirect back to users list if user not found
+            return "redirect:/users"; 
         }
     }
 
@@ -132,15 +163,12 @@ private PasswordEncoder passwordEncoder;
             @RequestParam("newMembershipId") Long newMembershipId,
             Model model) {
 
-        // Find the user to update
         User userToUpdate = userService.findByEmail(oldEmail);
 
         if (userToUpdate != null) {
-            // Update the user details
             userToUpdate.setName(newName);
             userToUpdate.setEmail(newEmail);
 
-            // Fetch Role and Membership from database by ID
             Role newRole = roleService.getRoleById(newRoleId);
             Membership newMembership = membershipService.getMembershipById(newMembershipId);
 
@@ -152,12 +180,12 @@ private PasswordEncoder passwordEncoder;
                 userToUpdate.setMembership(newMembership);
             }
 
-            userService.saveUser(userToUpdate); // Save updated user
+            userService.saveUser(userToUpdate);
 
             return "redirect:/users";
         } else {
             model.addAttribute("errorMessage", "User not found!");
-            return "user-edit"; // Return to the edit page with error message
+            return "user-edit"; 
         }
     }
 }

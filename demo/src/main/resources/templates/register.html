@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"> <!-- Add the Thymeleaf namespace -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +41,9 @@
     <!-- Content Area -->
     <div class="content">
         <h2>Registration Form</h2>
-        <form id="registrationForm" onsubmit="return validateForm()" action="/register" method="post">
+        <form id="registrationForm" onsubmit="return validateForm()" action="/register" method="post" th:action="@{/register}">
+            <!-- <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" /> CSRF Token -->
+
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>
 

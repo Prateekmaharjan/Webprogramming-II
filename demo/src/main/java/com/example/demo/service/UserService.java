@@ -30,10 +30,9 @@ public class UserService {
     // Method to save a user
     public User saveUser(User user) {
         System.out.println("Attempting to save user: " + user.getEmail());
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Encrypt the password before saving
         
         try {
-            User savedUser = userRepository.save(user);
+            User savedUser = userRepository.save(user); // No additional encoding here
             System.out.println("User saved successfully: " + savedUser.getEmail());
             return savedUser;
         } catch (Exception e) {
@@ -41,6 +40,7 @@ public class UserService {
             throw e; // Re-throw the exception or handle as needed
         }
     }
+    
 
     // Method to find all users
     public List<User> getAllUsers() {

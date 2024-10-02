@@ -7,10 +7,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "users") // Specify the table name
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment
@@ -97,5 +102,37 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    // UserDetails methods
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Assuming the Role class has a method getName() that returns the role name
+        return List.of(() -> role.getName()); // Return a single authority for the user's role
+    }
+
+    @Override
+    public String getUsername() {
+        return email; // Email is used as the username
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Assuming account is not expired
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Assuming account is not locked
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Assuming credentials are not expired
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // Assuming account is enabled
     }
 }
